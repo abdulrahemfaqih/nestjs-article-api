@@ -5,20 +5,22 @@ import { ArticleModule } from './article/article.module.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/database.config.js';
-
-
+import { CategoryModule } from './category/category.module.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true
-  }), 
-  TypeOrmModule.forRootAsync({
-    imports: [ConfigModule],
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService) => typeOrmConfig(configService)
-  }),
-  ArticleModule
-],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        typeOrmConfig(configService),
+    }),
+    ArticleModule,
+    CategoryModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

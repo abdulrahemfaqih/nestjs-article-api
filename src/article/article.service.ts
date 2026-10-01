@@ -1,37 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { IArticle } from './interface/article.interface.js';
 import { CreateArticleDTO } from './dto/create-article.dto.js';
-import { randomUUID } from 'crypto';
 import { UpdateArticleDTO } from './dto/update-article.dto.js';
+import { Article } from './entities/article.entity.js';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ArticleService {
-    // resource
-    private article: IArticle[] = []
+  // resource
+  constructor(
+    @InjectRepository(Article)
+    private ArticleRepository: Repository<Article>,
+  ) {}
+  async createArticle(createArticleDTO: CreateArticleDTO): Promise<Article> {
+    const newArticle = await this.ArticleRepository.save(createArticleDTO);
+    return newArticle;
+  }
 
-    createArticle(createArticleDTO: CreateArticleDTO) {
-        const article: IArticle = {
-            id: randomUUID(),
-            ...createArticleDTO
-        }
-        this.article.push(article)
-        return article
-    }
+  async findAllArticle(): Promise<Article[]> {
+    return await this.ArticleRepository.find();
+  }
 
-    findAllArticle(): IArticle[] {
-        return this.article
-    }
+  async findOneByParams(id: string): Promise<Article | null> {
+    return await this.ArticleRepository.findOne({
+      where: { id },
+    });
+  }
 
-    findOneByParams(id: string): IArticle | undefined {
-        return this.article.find(item => item.id === id )
-    }
+  async updateArticleByParams(
+    article: Article,
+    UpdateArticleDTO: UpdateArticleDTO,
+  ): Promise<Article> {
+    Object.assign(article, UpdateArticleDTO);
+    return await this.ArticleRepository.save(article);
+  }
 
-    updateArticleByParams(article: IArticle, UpdateArticleDTO: UpdateArticleDTO): IArticle {
-        Object.assign(article, UpdateArticleDTO)
-        return article
-    }
-
-    deleteArticleByParams(article: IArticle): void {
-        this.article = this.article.filter((filterData) => filterData.id != article.id)
-    }
+  async deleteArticleByParams(article: Article): Promise<void> {
+    await this.ArticleRepository.delete(article.id);
+  }
 }
