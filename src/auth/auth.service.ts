@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -31,7 +32,8 @@ export class AuthService {
     const userCount = await this.userRepository.count();
     const roleUser: Role = userCount === 0 ? Role.ADMIN : Role.USER;
     const newUser = this.userRepository.create({
-      ...registerDTO,
+      name: registerDTO.name,
+      email: registerDTO.email,
       password: hashPassword,
       role: roleUser,
     });
@@ -63,11 +65,12 @@ export class AuthService {
     };
   }
 
-  async getUser(id: string): Promise<User | null> {
+  async getUser(id: string): Promise<Omit<User, 'password'>> {
     const user = await this.userRepository.findOneBy({ id });
-    if (user?.password) {
-      user.password = '*************';
+    if (!user) {
+      throw new NotFoundException('User tidak ditemukan');
     }
-    return user;
+    const { password: _password, ...safeUser } = user;
+    return safeUser as Omit<User, 'password'>;
   }
 }

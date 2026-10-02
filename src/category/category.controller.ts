@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Delete,
-  NotFoundException,
   HttpCode,
   HttpStatus,
   Patch,
@@ -34,7 +33,7 @@ export class CategoryController {
 
   @Get(':id')
   async findOne(@Param() params: FindOneParams): Promise<Category> {
-    return await this.findOneOrFail(params.id);
+    return await this.categoryService.findOne(params.id);
   }
 
   @Patch(':id')
@@ -42,25 +41,12 @@ export class CategoryController {
     @Param() params: FindOneParams,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<Category> {
-    const category = await this.findOneOrFail(params.id);
-    return this.categoryService.updateCategoryByParams(
-      category,
-      updateCategoryDto,
-    );
+    return await this.categoryService.update(params.id, updateCategoryDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param() params: FindOneParams): Promise<void> {
-    const category = await this.findOneOrFail(params.id);
-    await this.categoryService.deleteCategoryByParams(category);
-  }
-
-  private async findOneOrFail(id: string): Promise<Category> {
-    const category = await this.categoryService.findOneByParams(id);
-    if (!category) {
-      throw new NotFoundException();
-    }
-    return category;
+  async remove(@Param() params: FindOneParams): Promise<void> {
+    await this.categoryService.remove(params.id);
   }
 }

@@ -2,10 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
+  type Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../enum/role.enum.js';
+import { Profile } from '../../profile/entities/profile.entity.js';
 
 @Entity()
 export class User {
@@ -27,6 +30,9 @@ export class User {
     default: Role.USER,
   })
   role: Role;
+
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Relation<Profile>;
 
   @CreateDateColumn()
   createdAt: Date;

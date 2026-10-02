@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateArticleDTO } from './dto/create-article.dto.js';
 import { UpdateArticleDTO } from './dto/update-article.dto.js';
 import { Article } from './entities/article.entity.js';
@@ -7,35 +7,41 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ArticleService {
-  // resource
   constructor(
     @InjectRepository(Article)
-    private ArticleRepository: Repository<Article>,
+    private readonly articleRepository: Repository<Article>,
   ) {}
-  async createArticle(createArticleDTO: CreateArticleDTO): Promise<Article> {
-    const newArticle = await this.ArticleRepository.save(createArticleDTO);
-    return newArticle;
+
+  async create(createArticleDTO: CreateArticleDTO): Promise<Article> {
+    const newArticle = this.articleRepository.create(createArticleDTO);
+    return await this.articleRepository.save(newArticle);
   }
 
-  async findAllArticle(): Promise<Article[]> {
-    return await this.ArticleRepository.find();
+  async findAll(): Promise<Article[]> {
+    return await this.articleRepository.find();
   }
 
-  async findOneByParams(id: string): Promise<Article | null> {
-    return await this.ArticleRepository.findOne({
+  async findOne(id: string): Promise<Article> {
+    const article = await this.articleRepository.findOne({
       where: { id },
     });
+    if (!article) {
+      throw new NotFoundException(`Article dengan ID ${id} tidak ditemukan`);
+    }
+    return article;
   }
 
-  async updateArticleByParams(
-    article: Article,
-    UpdateArticleDTO: UpdateArticleDTO,
+  async update(
+    id: string,
+    updateArticleDTO: UpdateArticleDTO,
   ): Promise<Article> {
-    Object.assign(article, UpdateArticleDTO);
-    return await this.ArticleRepository.save(article);
+    const article = await this.findOne(id);
+    Object.assign(article, updateArticleDTO);
+    return await this.articleRepository.save(article);
   }
 
-  async deleteArticleByParams(article: Article): Promise<void> {
-    await this.ArticleRepository.delete(article.id);
+  async remove(id: string): Promise<void> {
+    const article = await this.findOne(id);
+    await this.articleRepository.remove(article);
   }
 }

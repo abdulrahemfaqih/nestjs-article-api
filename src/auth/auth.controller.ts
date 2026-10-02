@@ -19,7 +19,7 @@ import { Role } from './enum/role.enum.js';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   async register(
@@ -36,7 +36,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('getuser')
-  async getUser(@Request() request: any): Promise<User | null> {
+  async getUser(@Request() request: any): Promise<Omit<User, 'password'>> {
     return await this.authService.getUser(request.user?.sub);
   }
 

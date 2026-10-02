@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -22,43 +21,30 @@ export class ArticleController {
 
   @Get()
   async findAll(): Promise<Article[]> {
-    return await this.articleService.findAllArticle();
+    return await this.articleService.findAll();
   }
 
   @Get(':id')
   async findOne(@Param() params: FindOneParams): Promise<Article> {
-    return await this.findOneOrFail(params.id);
+    return await this.articleService.findOne(params.id);
   }
 
   @Post()
   async create(@Body() createArticleDTO: CreateArticleDTO): Promise<Article> {
-    return await this.articleService.createArticle(createArticleDTO);
+    return await this.articleService.create(createArticleDTO);
   }
 
   @Patch(':id')
   async update(
     @Param() params: FindOneParams,
-    @Body() UpdateArticleDTO: UpdateArticleDTO,
+    @Body() updateArticleDTO: UpdateArticleDTO,
   ): Promise<Article> {
-    const article = await this.findOneOrFail(params.id);
-    return await this.articleService.updateArticleByParams(
-      article,
-      UpdateArticleDTO,
-    );
+    return await this.articleService.update(params.id, updateArticleDTO);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param() params: FindOneParams): Promise<void> {
-    const article = await this.findOneOrFail(params.id);
-    await this.articleService.deleteArticleByParams(article);
-  }
-
-  private async findOneOrFail(id: string): Promise<Article> {
-    const article = await this.articleService.findOneByParams(id);
-    if (!article) {
-      throw new NotFoundException();
-    }
-    return article;
+  async remove(@Param() params: FindOneParams): Promise<void> {
+    await this.articleService.remove(params.id);
   }
 }
