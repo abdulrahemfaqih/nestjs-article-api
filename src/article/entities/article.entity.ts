@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ArticleStatus } from '../enums/article.enums.js';
+import { ArticleStatus } from '../enum/article.enums.js';
 
 @Entity()
 export class Article {

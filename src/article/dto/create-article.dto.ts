@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsEnum } from 'class-validator';
-import { ArticleStatus } from '../enums/article.enums.js';
+import { ArticleStatus } from '../enum/article.enums.js';
 
 export class CreateArticleDTO {
   @IsNotEmpty()
