@@ -46,4 +46,15 @@ export class ProfileService {
       };
     }
   }
+
+  async getUserProfileByToken(userId: string): Promise<User | null> {
+    const userProfile = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: {
+        profile: true,
+      },
+    });
+
+    return userProfile;
+  }
 }

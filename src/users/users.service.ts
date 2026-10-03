@@ -11,7 +11,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll(): Promise<Omit<User, 'password'>[]> {
+  async findAll(): Promise<User[]> {
     return await this.userRepository.find({
       select: {
         id: true,
@@ -27,6 +27,14 @@ export class UsersService {
   async findById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     if (!user) {
       throw new NotFoundException(`User dengan ID ${id} tidak ditemukan`);
@@ -37,15 +45,14 @@ export class UsersService {
   async updateRole(
     id: string,
     updateRoleDTO: UpdateRoleDTO,
-  ): Promise<{ message: string; user: Omit<User, 'password'> }> {
+  ): Promise<{ message: string; user: User }> {
     const user = await this.findById(id);
     user.role = updateRoleDTO.role;
     const savedUser = await this.userRepository.save(user);
 
-    const { password: _password, ...userWithoutPassword } = savedUser;
     return {
       message: 'Role berhasil diubah',
-      user: userWithoutPassword as Omit<User, 'password'>,
+      user: savedUser,
     };
   }
 }

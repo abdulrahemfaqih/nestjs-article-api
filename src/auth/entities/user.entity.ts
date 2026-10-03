@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   type Relation,
@@ -9,6 +10,7 @@ import {
 } from 'typeorm';
 import { Role } from '../enum/role.enum.js';
 import { Profile } from '../../profile/entities/profile.entity.js';
+import { Article } from '../../article/entities/article.entity.js';
 
 @Entity()
 export class User {
@@ -21,7 +23,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, select: false })
   password: string;
 
   @Column({
@@ -33,6 +35,9 @@ export class User {
 
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Relation<Profile>;
+
+  @OneToMany(() => Article, (article) => article.id)
+  article: Article[]
 
   @CreateDateColumn()
   createdAt: Date;

@@ -36,7 +36,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('getuser')
-  async getUser(@Request() request: any): Promise<Omit<User, 'password'>> {
+  async getUser(@Request() request: any): Promise<User> {
     return await this.authService.getUser(request.user?.sub);
   }
 

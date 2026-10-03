@@ -44,9 +44,11 @@ export class AuthService {
   }
 
   async loginUser(loginDTO: LoginDTO): Promise<{ access_token: string }> {
-    const user = await this.userRepository.findOne({
-      where: { email: loginDTO.email },
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email: loginDTO.email })
+      .getOne();
 
     if (!user) {
       throw new UnauthorizedException('Invalid Credentials');
@@ -65,12 +67,11 @@ export class AuthService {
     };
   }
 
-  async getUser(id: string): Promise<Omit<User, 'password'>> {
+  async getUser(id: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User tidak ditemukan');
     }
-    const { password: _password, ...safeUser } = user;
-    return safeUser as Omit<User, 'password'>;
+    return user;
   }
 }

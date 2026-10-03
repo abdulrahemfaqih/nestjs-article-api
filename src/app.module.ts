@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { ProfileModule } from './profile/profile.module.js';
+import { CloudinaryModule } from './cloudinary/cloudinary.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProfileModule } from './profile/profile.module.js';
     AuthModule,
     UsersModule,
     ProfileModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

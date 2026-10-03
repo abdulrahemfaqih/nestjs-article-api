@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum, IsUUID } from 'class-validator';
 import { ArticleStatus } from '../enum/article.enums.js';
 
 export class CreateArticleDTO {
@@ -12,4 +12,8 @@ export class CreateArticleDTO {
   @IsNotEmpty()
   @IsEnum(ArticleStatus)
   status: ArticleStatus;
+
+  @IsNotEmpty()
+  @IsUUID()
+  categoryId: string;
 }

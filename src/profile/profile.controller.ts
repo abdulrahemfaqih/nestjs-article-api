@@ -1,7 +1,8 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guard/auth.guard.js';
 import { ProfileService } from './profile.service.js';
 import { CreateOrUpdateProfileDTO } from './dto/createOrUpdateProfile.dto.js';
+import { User } from '../auth/entities/user.entity.js';
 
 @Controller('profile')
 @UseGuards(AuthGuard)
@@ -17,5 +18,12 @@ export class ProfileController {
       request.user.sub,
       createOrUpdateProfileDTO,
     );
+  }
+
+  @Get()
+  async getUserProfile(
+    @Request() req: { user: { sub: string } },
+  ): Promise<User | null> {
+    return this.profileService.getUserProfileByToken(req.user.sub);
   }
 }
