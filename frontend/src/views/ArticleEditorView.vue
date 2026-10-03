@@ -259,7 +259,7 @@
         >
           <div
             v-if="form.content.trim()"
-            class="prose prose-neutral max-w-none prose-headings:font-bold prose-pre:bg-neutral-950 prose-pre:text-white"
+            class="markdown-body prose prose-neutral max-w-none"
             v-html="renderMarkdown(form.content)"
           ></div>
           <div v-else class="text-xs text-neutral-400 italic py-12 text-center">

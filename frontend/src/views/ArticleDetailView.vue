@@ -126,7 +126,7 @@
       <!-- Article Body Content (Markdown Formatted) -->
       <div class="py-4">
         <div
-          class="prose prose-neutral max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-neutral-900 prose-a:underline hover:prose-a:text-amber-800 prose-pre:bg-neutral-950 prose-pre:text-neutral-100 prose-pre:border prose-pre:border-neutral-800 prose-code:font-mono prose-img:rounded-md leading-relaxed"
+          class="markdown-body prose prose-neutral max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-neutral-900 prose-a:underline hover:prose-a:text-amber-800 prose-pre:bg-neutral-950 prose-pre:text-neutral-100 prose-pre:border prose-pre:border-neutral-800 prose-code:font-mono prose-img:rounded-md leading-relaxed"
           v-html="renderedContent"
         ></div>
       </div>
