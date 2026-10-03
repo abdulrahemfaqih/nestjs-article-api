@@ -16,7 +16,9 @@ import { AuthGuard } from './guard/auth.guard.js';
 import { RolesGuard } from './guard/roles.guard.js';
 import { Roles } from './decorators/roles.decorator.js';
 import { Role } from './enum/role.enum.js';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -34,12 +36,14 @@ export class AuthController {
     return await this.authService.loginUser(loginDTO);
   }
 
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard)
   @Get('getuser')
   async getUser(@Request() request: any): Promise<User> {
     return await this.authService.getUser(request.user?.sub);
   }
 
+  @ApiBearerAuth('JWT-auth')
   @Get('test')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

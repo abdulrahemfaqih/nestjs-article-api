@@ -5,10 +5,16 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  ManyToMany,
+  OneToMany,
+  JoinTable,
+  type Relation,
 } from 'typeorm';
 import { ArticleStatus } from '../enum/article.enums.js';
 import { Category } from '../../category/entities/category.entity.js';
 import { User } from '../../auth/entities/user.entity.js';
+import { Tag } from '../../tag/entities/tag.entity.js';
+import { Comment } from '../../comment/entities/comment.entity.js';
 
 @Entity()
 export class Article {
@@ -35,19 +41,30 @@ export class Article {
   })
   status: ArticleStatus;
 
-  @ManyToOne(() => Category, (category) => category.id)
-  category: Category
+  @ManyToOne(() => Category, (category) => category.articles)
+  category: Relation<Category>;
   @Column({
     type: "uuid"
   })
-  categoryId: string
+  categoryId: string;
 
-  @ManyToOne(() => User, (user) => user.id )
-  user: User
+  @ManyToOne(() => User, (user) => user.articles)
+  user: Relation<User>;
   @Column({
     type: "uuid"
   })
-  userId: string
+  userId: string;
+
+  @ManyToMany(() => Tag, (tag) => tag.articles)
+  @JoinTable({
+    name: 'article_tags',
+    joinColumn: { name: 'articleId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' },
+  })
+  tags: Relation<Tag[]>;
+
+  @OneToMany(() => Comment, (comment) => comment.article)
+  comments: Relation<Comment[]>;
 
   @CreateDateColumn()
   readonly createdAt: Date;

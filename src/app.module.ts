@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { ProfileModule } from './profile/profile.module.js';
 import { CloudinaryModule } from './cloudinary/cloudinary.module.js';
+import { TagModule } from './tag/tag.module.js';
+import { CommentModule } from './comment/comment.module.js';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module.js';
     UsersModule,
     ProfileModule,
     CloudinaryModule,
+    TagModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

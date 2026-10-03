@@ -1,20 +1,22 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  OneToMany,
+  Entity,
+  ManyToMany,
+  PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm';
 import { Article } from '../../article/entities/article.entity.js';
 
 @Entity()
-export class Category {
+export class Tag {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   name: string;
 
-  @OneToMany(() => Article, (article) => article.category)
+  @ManyToMany(() => Article, (article) => article.tags)
   articles: Relation<Article[]>;
 }

@@ -52,6 +52,7 @@ export class ProfileService {
       where: { id: userId },
       relations: {
         profile: true,
+        articles: true,
       },
     });
 

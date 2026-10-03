@@ -18,12 +18,32 @@ export class CategoryService {
   }
 
   async findAll(): Promise<Category[]> {
-    return await this.categoryRepository.find();
+    return await this.categoryRepository.find({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
   }
 
   async findOne(id: string): Promise<Category> {
     const category = await this.categoryRepository.findOne({
       where: { id },
+      relations: {
+        articles: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        articles: {
+          id: true,
+          title: true,
+          content: true,
+          image: true,
+          status: true,
+          createdAt: true,
+        },
+      },
     });
     if (!category) {
       throw new NotFoundException(`Category dengan ID ${id} tidak ditemukan`);

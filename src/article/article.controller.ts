@@ -6,8 +6,10 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Request,
   UploadedFile,
   UseGuards,
@@ -23,14 +25,33 @@ import { AuthGuard } from '../auth/guard/auth.guard.js';
 import { RolesGuard } from '../auth/guard/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { Role } from '../auth/enum/role.enum.js';
+import { ArticleQueryDTO } from './dto/article-query.dto.js';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Article')
 @Controller('article')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Get()
-  async findAll(): Promise<Article[]> {
-    return await this.articleService.findAll();
+  async findAll(@Query() query: ArticleQueryDTO) {
+    return await this.articleService.findAll(query);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(AuthGuard)
+  @Get('user/my-articles')
+  async findMyArticles(
+    @Request() request: { user: { sub: string } },
+  ): Promise<Article[]> {
+    return await this.articleService.findByUserId(request.user.sub);
+  }
+
+  @Get('user/:userId')
+  async findByUserId(
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+  ): Promise<Article[]> {
+    return await this.articleService.findByUserId(userId);
   }
 
   @Get(':id')
@@ -38,6 +59,8 @@ export class ArticleController {
     return await this.articleService.findOne(params.id);
   }
 
+  @ApiBearerAuth('JWT-auth')
+  @ApiConsumes('multipart/form-data')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post()
@@ -54,6 +77,8 @@ export class ArticleController {
     );
   }
 
+  @ApiBearerAuth('JWT-auth')
+  @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -72,6 +97,7 @@ export class ArticleController {
     );
   }
 
+  @ApiBearerAuth('JWT-auth')
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

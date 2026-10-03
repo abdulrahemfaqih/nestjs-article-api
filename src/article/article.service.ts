@@ -6,15 +6,19 @@ import {
 import { CreateArticleDTO } from './dto/create-article.dto.js';
 import { UpdateArticleDTO } from './dto/update-article.dto.js';
 import { Article } from './entities/article.entity.js';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
+import { ArticleQueryDTO } from './dto/article-query.dto.js';
+import { Tag } from '../tag/entities/tag.entity.js';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: Repository<Tag>,
     private cloudinaryService: CloudinaryService,
   ) {}
 
@@ -28,19 +32,97 @@ export class ArticleService {
     if (file) {
       image = await this.cloudinaryService.uploadImageStream(file);
     }
+
+    const { tagIds, ...articleData } = createArticleDTO;
+
+    let tags: Tag[] = [];
+    if (tagIds && tagIds.length > 0) {
+      tags = await this.tagRepository.findBy({ id: In(tagIds) });
+    }
+
     const newArticle = this.articleRepository.create({
-      ...createArticleDTO,
+      ...articleData,
       image,
       userId,
+      tags,
     });
     return await this.articleRepository.save(newArticle);
   }
 
-  async findAll(): Promise<Article[]> {
+  async findAll(query: ArticleQueryDTO) {
+    const {
+      title,
+      categoryId,
+      tagId,
+      page = 1,
+      limit = 3,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
+
+    // pagination
+    const skip = (page - 1) * limit;
+    const queryBuilder = this.articleRepository
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.category', 'category')
+      .leftJoinAndSelect('article.user', 'user')
+      .leftJoinAndSelect('article.tags', 'tag');
+
+    // search
+    if (title) {
+      queryBuilder.andWhere('article.title ILIKE :title', {
+        title: `%${title}%`,
+      });
+    }
+
+    if (categoryId) {
+      queryBuilder.andWhere('article.categoryId = :categoryId', {
+        categoryId,
+      });
+    }
+
+    if (tagId) {
+      queryBuilder.andWhere('tag.id = :tagId', {
+        tagId,
+      });
+    }
+
+    // relasi
+    const [data, total] = await queryBuilder
+      .orderBy(`article.${sortBy}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
+      .skip(skip)
+      .take(limit)
+      .select([
+        'article',
+        'category.id',
+        'category.name',
+        'user.id',
+        'user.name',
+        'user.email',
+        'tag.id',
+        'tag.name',
+      ])
+      .getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        lastPage: Math.ceil(total / limit) || 1,
+      },
+    };
+  }
+
+  async findByUserId(userId: string): Promise<Article[]> {
     return await this.articleRepository.find({
+      where: {
+        userId,
+      },
       relations: {
         category: true,
-        user: true,
+        tags: true,
       },
       select: {
         id: true,
@@ -54,10 +136,13 @@ export class ArticleService {
           id: true,
           name: true,
         },
-        user: {
+        tags: {
           id: true,
           name: true,
         },
+      },
+      order: {
+        createdAt: 'DESC',
       },
     });
   }
@@ -68,6 +153,10 @@ export class ArticleService {
       relations: {
         category: true,
         user: true,
+        tags: true,
+        comments: {
+          user: true,
+        },
       },
       select: {
         id: true,
@@ -86,6 +175,19 @@ export class ArticleService {
           name: true,
           email: true,
           role: true,
+        },
+        tags: {
+          id: true,
+          name: true,
+        },
+        comments: {
+          id: true,
+          content: true,
+          createdAt: true,
+          user: {
+            id: true,
+            name: true,
+          },
         },
       },
     });
@@ -117,7 +219,15 @@ export class ArticleService {
       article.image = await this.cloudinaryService.uploadImageStream(file);
     }
 
-    Object.assign(article, updateArticleDTO);
+    const { tagIds, ...articleData } = updateArticleDTO;
+    if (tagIds !== undefined) {
+      article.tags =
+        tagIds.length > 0
+          ? await this.tagRepository.findBy({ id: In(tagIds) })
+          : [];
+    }
+
+    Object.assign(article, articleData);
     return await this.articleRepository.save(article);
   }
 

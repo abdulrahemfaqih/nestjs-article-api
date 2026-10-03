@@ -7,17 +7,24 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../enum/role.enum.js';
 
 export class RegisterDTO {
+  @ApiProperty({ example: 'John Doe', description: 'Nama lengkap user' })
   @IsNotEmpty()
   @IsString()
   name: string;
 
+  @ApiProperty({ example: 'john.doe@example.com', description: 'Alamat email user' })
   @IsEmail()
   @IsString()
   email: string;
 
+  @ApiProperty({
+    example: 'Secret@123',
+    description: 'Password minimal 8 karakter, 1 huruf besar, 1 angka, 1 simbol',
+  })
   @IsNotEmpty()
   @IsString()
   @MinLength(8, {
@@ -34,6 +41,7 @@ export class RegisterDTO {
   })
   password: string;
 
+  @ApiPropertyOptional({ enum: Role, default: Role.USER, description: 'Role user' })
   @IsOptional()
   @IsEnum(Role)
   role: Role;
