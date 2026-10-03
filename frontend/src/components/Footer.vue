@@ -14,10 +14,6 @@
 
         <!-- System & Links -->
         <div class="flex items-center space-x-6 text-xs text-neutral-400">
-          <span class="flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span>NestJS API v1 Terhubung</span>
-          </span>
           <span>&copy; {{ currentYear }} Monolog. Hak Cipta Dilindungi.</span>
         </div>
       </div>
