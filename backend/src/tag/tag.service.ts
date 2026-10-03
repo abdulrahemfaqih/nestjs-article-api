@@ -21,7 +21,7 @@ export class TagService {
       where: { name: createTagDTO.name },
     });
     if (existing) {
-      throw new ConflictException(`Tag dengan nama "${createTagDTO.name}" sudah ada`);
+      return existing;
     }
 
     const tag = this.tagRepository.create(createTagDTO);

@@ -13,6 +13,13 @@ export class CategoryService {
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+    const existing = await this.categoryRepository.findOne({
+      where: { name: createCategoryDto.name },
+    });
+    if (existing) {
+      return existing;
+    }
+
     const category = this.categoryRepository.create(createCategoryDto);
     return await this.categoryRepository.save(category);
   }

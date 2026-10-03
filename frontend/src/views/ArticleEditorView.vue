@@ -57,10 +57,22 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Category -->
         <div>
-          <label for="category" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
-            Kategori *
-          </label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="category" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+              Kategori *
+            </label>
+            <button
+              type="button"
+              @click="toggleNewCategoryMode"
+              class="text-xs font-medium text-neutral-600 hover:text-black underline cursor-pointer"
+            >
+              {{ isCreatingCategory ? 'Pilih yang ada' : '+ Kategori Baru' }}
+            </button>
+          </div>
+
+          <!-- Existing Category Select -->
           <select
+            v-if="!isCreatingCategory"
             id="category"
             v-model="form.categoryId"
             required
@@ -75,6 +87,25 @@
               {{ cat.name }}
             </option>
           </select>
+
+          <!-- New Category Input -->
+          <div v-else class="flex items-center gap-2">
+            <input
+              v-model="newCategoryName"
+              type="text"
+              placeholder="Nama kategori baru..."
+              @keydown.enter.prevent="handleQuickAddCategory"
+              class="w-full text-sm px-3 py-2 bg-white border border-neutral-300 rounded focus:outline-none focus:border-black"
+            />
+            <button
+              type="button"
+              @click="handleQuickAddCategory"
+              :disabled="isCategoryLoading || !newCategoryName.trim()"
+              class="px-3.5 py-2 bg-black text-white text-xs font-semibold uppercase tracking-wider rounded hover:bg-neutral-800 disabled:opacity-40 shrink-0 cursor-pointer"
+            >
+              {{ isCategoryLoading ? '...' : 'Gunakan' }}
+            </button>
+          </div>
         </div>
 
         <!-- Status -->
@@ -94,17 +125,46 @@
         </div>
       </div>
 
-      <!-- Tags Multi-Selection -->
+      <!-- Tags Multi-Selection and Quick Add -->
       <div>
-        <label class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-2">
-          Pilih Tag Terkait
-        </label>
-        <div v-if="articleStore.tags.length > 0" class="flex flex-wrap gap-2 p-3 bg-white border border-neutral-200 rounded">
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+            Pilih atau Buat Tag Terkait
+          </label>
+          <span class="text-xs text-neutral-400">
+            {{ form.tagIds.length }} tag dipilih
+          </span>
+        </div>
+
+        <!-- Quick Tag Input -->
+        <div class="flex items-center gap-2 mb-3">
+          <div class="relative flex-1">
+            <span class="absolute left-3 top-2.5 text-xs text-neutral-400">#</span>
+            <input
+              v-model="newTagInput"
+              type="text"
+              placeholder="Ketik tag lalu tekan Enter (contoh: teknologi, nestjs)..."
+              @keydown.enter.prevent="handleQuickAddTag"
+              class="w-full text-xs pl-7 pr-3 py-2 bg-white border border-neutral-300 rounded focus:outline-none focus:border-black"
+            />
+          </div>
+          <button
+            type="button"
+            @click="handleQuickAddTag"
+            :disabled="isTagLoading || !newTagInput.trim()"
+            class="px-3.5 py-2 bg-neutral-900 text-white text-xs font-medium rounded hover:bg-black disabled:opacity-40 shrink-0 transition-colors cursor-pointer"
+          >
+            {{ isTagLoading ? '...' : '+ Tambah Tag' }}
+          </button>
+        </div>
+
+        <!-- Available Tags List -->
+        <div v-if="articleStore.tags.length > 0" class="flex flex-wrap gap-2 p-3 bg-white border border-neutral-200 rounded max-h-48 overflow-y-auto">
           <label
             v-for="tag in articleStore.tags"
             :key="tag.id"
-            class="inline-flex items-center space-x-1.5 text-xs px-2.5 py-1 rounded border cursor-pointer transition-colors"
-            :class="form.tagIds.includes(tag.id) ? 'bg-black text-white border-black' : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-neutral-400'"
+            class="inline-flex items-center space-x-1.5 text-xs px-2.5 py-1 rounded border cursor-pointer select-none transition-colors"
+            :class="form.tagIds.includes(tag.id) ? 'bg-black text-white border-black font-medium' : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-neutral-400'"
           >
             <input
               type="checkbox"
@@ -116,7 +176,7 @@
           </label>
         </div>
         <div v-else class="text-xs text-neutral-400">
-          Belum ada tag yang dibuat. Anda dapat membuatnya di panel Admin.
+          Belum ada tag. Ketik nama tag di atas untuk membuat tag baru.
         </div>
       </div>
 
@@ -197,6 +257,86 @@ const form = reactive({
   tagIds: [],
 });
 
+const isCreatingCategory = ref(false);
+const newCategoryName = ref('');
+const isCategoryLoading = ref(false);
+
+const newTagInput = ref('');
+const isTagLoading = ref(false);
+
+function toggleNewCategoryMode() {
+  isCreatingCategory.value = !isCreatingCategory.value;
+  newCategoryName.value = '';
+}
+
+async function handleQuickAddCategory() {
+  const name = newCategoryName.value.trim();
+  if (!name) return;
+
+  try {
+    isCategoryLoading.value = true;
+    errorMessage.value = '';
+
+    // Cek apakah kategori sudah ada (case-insensitive)
+    const existing = articleStore.categories.find(
+      (c) => c.name.trim().toLowerCase() === name.toLowerCase()
+    );
+
+    if (existing) {
+      form.categoryId = existing.id;
+    } else {
+      const created = await articleStore.createCategory(name);
+      form.categoryId = created.id;
+    }
+
+    isCreatingCategory.value = false;
+    newCategoryName.value = '';
+  } catch (err) {
+    errorMessage.value = err.message || 'Gagal menambahkan kategori';
+  } finally {
+    isCategoryLoading.value = false;
+  }
+}
+
+async function handleQuickAddTag() {
+  let name = newTagInput.value.trim();
+  if (!name) return;
+
+  if (name.startsWith('#')) {
+    name = name.slice(1).trim();
+  }
+  if (!name) return;
+
+  try {
+    isTagLoading.value = true;
+    errorMessage.value = '';
+
+    // Cek apakah tag sudah ada (case-insensitive)
+    const existing = articleStore.tags.find(
+      (t) => t.name.trim().toLowerCase() === name.toLowerCase()
+    );
+
+    if (existing) {
+      // Gunakan tag yang sudah ada
+      if (!form.tagIds.includes(existing.id)) {
+        form.tagIds.push(existing.id);
+      }
+    } else {
+      // Buat baru jika belum ada
+      const created = await articleStore.createTag(name);
+      if (created?.id && !form.tagIds.includes(created.id)) {
+        form.tagIds.push(created.id);
+      }
+    }
+
+    newTagInput.value = '';
+  } catch (err) {
+    errorMessage.value = err.message || 'Gagal menambahkan tag';
+  } finally {
+    isTagLoading.value = false;
+  }
+}
+
 function handleFileChange(e) {
   const file = e.target.files?.[0];
   if (file) {
@@ -212,6 +352,10 @@ function clearImage() {
 }
 
 async function handleSubmit() {
+  if (isCreatingCategory.value && newCategoryName.value.trim() && !form.categoryId) {
+    await handleQuickAddCategory();
+  }
+
   if (!form.title.trim() || !form.content.trim() || !form.categoryId) {
     errorMessage.value = 'Judul, Kategori, dan Isi Konten wajib diisi.';
     return;
