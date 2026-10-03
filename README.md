@@ -1,124 +1,253 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Article & Blog API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+RESTful API komprehensif untuk platform penerbitan artikel dan manajemen konten yang dibangun menggunakan NestJS, TypeORM, PostgreSQL, dan Cloudinary. Proyek ini dilengkapi dengan autentikasi berbasis JWT, kontrol akses berbasis peran (Role-Based Access Control), relasi database tingkat lanjut, paginasi dinamis, serta dokumentasi interaktif OpenAPI (Swagger).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Daftar Isi
+- [Fitur Utama](#fitur-utama)
+- [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+- [Struktur Relasi Database](#struktur-relasi-database)
+- [Prasyarat Sistem](#prasyarat-sistem)
+- [Konfigurasi Environment Variable](#konfigurasi-environment-variable)
+- [Panduan Instalasi dan Menjalankan Proyek](#panduan-instalasi-dan-menjalankan-proyek)
+- [Migrasi Database](#migrasi-database)
+- [Dokumentasi API (Swagger)](#dokumentasi-api-swagger)
+- [Daftar Endpoint Utama](#daftar-endpoint-utama)
+- [Lisensi](#lisensi)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Fitur Utama
 
-```bash
-$ npm install
+### 1. Autentikasi dan Otorisasi (RBAC)
+- Registrasi dan login pengguna dengan enkripsi password menggunakan bcrypt.
+- Autentikasi berbasis JSON Web Token (JWT).
+- Role-Based Access Control (Roles: `admin` dan `user`) dengan Guard kustom (`AuthGuard` dan `RolesGuard`).
+
+### 2. Manajemen Artikel (CRUD)
+- Pembuatan, pembaruan, penghapusan, dan pembacaan artikel.
+- Upload gambar artikel langsung ke Cloudinary menggunakan streaming buffer.
+- Paginasi server-side dinamis dengan konfigurasi `page` dan `limit`.
+- Pencarian judul artikel secara case-insensitive (`ILIKE`).
+- Filter artikel berdasarkan kategori (`categoryId`), tag (`tagId`), atau penulis (`userId`).
+- Pengurutan data dinamis berdasarkan kolom dan arah (`asc` / `desc`).
+- Endpoint khusus untuk melihat artikel milik pengguna yang sedang login (`/api/v1/article/user/my-articles`).
+
+### 3. Kategori dan Tag
+- Relasi One-to-Many antara Kategori dan Artikel.
+- Relasi Many-to-Many antara Artikel dan Tag menggunakan tabel perantara (`article_tags`).
+- Manajemen CRUD lengkap untuk entitas Kategori dan Tag.
+
+### 4. Sistem Komentar
+- Relasi Many-to-One antara Komentar dengan Artikel dan Pengguna.
+- Mekanisme penghapusan kaskade (`CASCADE` delete): jika artikel atau pengguna dihapus, komentar terkait akan terhapus otomatis.
+- Validasi kepemilikan: pengguna hanya dapat menghapus komentar miliknya sendiri, sementara administrator memiliki akses penghapusan global.
+
+### 5. Profil Pengguna
+- Relasi One-to-One antara Pengguna dan Profil (`age`, `bio`).
+- Manajemen pembuatan dan pembaruan profil pengguna berbasis token autentikasi.
+
+### 6. Dokumentasi API Interaktif
+- Terintegrasi penuh dengan `@nestjs/swagger`.
+- Konfigurasi Authorize JWT Bearer dengan persistensi token saat halaman dimuat ulang.
+- Dukungan form multipart/form-data untuk upload berkas langsung melalui antarmuka Swagger.
+
+---
+
+## Teknologi yang Digunakan
+
+- **Backend Framework:** NestJS (v12)
+- **Bahasa Pemrograman:** TypeScript
+- **Database:** PostgreSQL
+- **Object-Relational Mapping (ORM):** TypeORM
+- **Cloud Media Storage:** Cloudinary SDK
+- **Validasi dan Transformasi:** class-validator, class-transformer
+- **Dokumentasi API:** OpenAPI / Swagger (@nestjs/swagger)
+- **Pengujian:** Vitest
+
+---
+
+## Struktur Relasi Database
+
+- **User - Profile:** One-to-One
+  Setiap user memiliki satu profil opsional.
+- **User - Article:** One-to-Many
+  Satu user dapat menulis banyak artikel.
+- **Category - Article:** One-to-Many
+  Satu kategori dapat menampung banyak artikel.
+- **Article - Tag:** Many-to-Many
+  Satu artikel dapat memiliki banyak tag, dan satu tag dapat digunakan oleh banyak artikel (dikelola melalui tabel `article_tags`).
+- **Article - Comment:** One-to-Many
+  Satu artikel dapat memiliki banyak komentar dari berbagai user.
+- **User - Comment:** One-to-Many
+  Satu user dapat mengirim banyak komentar pada berbagai artikel.
+
+---
+
+## Prasyarat Sistem
+
+Pastikan perangkat Anda telah terpasang:
+- Node.js versi 18 atau lebih baru
+- npm, yarn, atau pnpm
+- PostgreSQL server (aktif)
+- Akun Cloudinary aktif untuk kredensial API
+
+---
+
+## Konfigurasi Environment Variable
+
+Buat berkas `.env` pada direktori root proyek dan sesuaikan nilainya:
+
+```env
+# Server Configuration
+PORT=3000
+
+# Database Configuration (PostgreSQL)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=password_database_anda
+DB_NAME=nama_database_anda
+
+# JWT Secret
+JWT_SECRET=rahasia_kunci_jwt_anda
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=cloud_name_anda
+CLOUDINARY_API_KEY=api_key_anda
+CLOUDINARY_API_KEY_SECRET=api_secret_anda
 ```
 
-## Compile and run the project
+---
 
+## Panduan Instalasi dan Menjalankan Proyek
+
+1. Clone repositori:
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/abdulrahemfaqih/nama-repo-anda.git
+cd belajar-nest-js
 ```
 
-## Run tests
-
+2. Pasang seluruh dependensi:
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+3. Jalankan migrasi database:
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run migration:run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
-
+4. Jalankan aplikasi dalam mode pengembangan:
 ```bash
-$ npm install @nestjs/observe
+npm run start:dev
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+Aplikasi akan berjalan di: `http://localhost:3000`
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+---
 
-## Resources
+## Migrasi Database
 
-Check out a few resources that may come in handy when working with NestJS:
+Manajemen skema database dikelola melalui TypeORM CLI:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- **Membuat migrasi otomatis dari perubahan entitas:**
+```bash
+npm run migration:generate -- src/migrations/NamaMigrasi
+```
 
-## Support
+- **Menjalankan migrasi tertunda ke database:**
+```bash
+npm run migration:run
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- **Membangun proyek untuk produksi:**
+```bash
+npm run build
+```
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Dokumentasi API (Swagger)
 
-## License
+Setelah server berjalan, dokumentasi interaktif dapat diakses melalui browser pada:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```
+http://localhost:3000/api/docs
+```
+
+Untuk menguji endpoint yang terproteksi:
+1. Jalankan request `POST /api/v1/auth/login`.
+2. Salin token dari `access_token` pada response.
+3. Klik tombol **Authorize** di pojok kanan atas halaman Swagger.
+4. Masukkan token tersebut dan klik **Authorize**.
+
+---
+
+## Daftar Endpoint Utama
+
+Prefix global API: `/api/v1`
+
+### Auth (`/api/v1/auth`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| POST | `/auth/register` | Publik | Registrasi akun baru |
+| POST | `/auth/login` | Publik | Autentikasi dan penerbitan JWT token |
+| GET | `/auth/getuser` | User Login | Mengambil data akun yang sedang login |
+| GET | `/auth/test` | Admin | Verifikasi akses peran admin |
+
+### Article (`/api/v1/article`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| GET | `/article` | Publik | Daftar artikel dengan pagination, search, dan filter |
+| GET | `/article/user/my-articles` | User Login | Mengambil artikel milik user yang sedang login |
+| GET | `/article/user/:userId` | Publik | Mengambil daftar artikel berdasarkan ID penulis |
+| GET | `/article/:id` | Publik | Detail artikel beserta relasi kategori, tag, dan komentar |
+| POST | `/article` | Admin | Membuat artikel baru (mendukung upload gambar multipart) |
+| PATCH | `/article/:id` | Admin | Memperbarui data artikel dan gambar |
+| DELETE | `/article/:id` | Admin | Menghapus artikel secara permanen |
+
+### Category (`/api/v1/category`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| GET | `/category` | Publik | Mengambil semua kategori |
+| GET | `/category/:id` | Publik | Detail kategori beserta daftar artikel terkait |
+| POST | `/category` | Publik | Menambahkan kategori baru |
+| PATCH | `/category/:id` | Publik | Memperbarui nama kategori |
+| DELETE | `/category/:id` | Publik | Menghapus kategori |
+
+### Tag (`/api/v1/tag`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| GET | `/tag` | Publik | Mengambil semua tag |
+| GET | `/tag/:id` | Publik | Mengambil detail tag |
+| POST | `/tag` | Publik | Menambahkan tag baru |
+| PATCH | `/tag/:id` | Publik | Memperbarui nama tag |
+| DELETE | `/tag/:id` | Publik | Menghapus tag |
+
+### Comment (`/api/v1`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| POST | `/article/:articleId/comments` | User Login | Menulis komentar pada artikel |
+| GET | `/article/:articleId/comments` | Publik | Mengambil semua komentar pada suatu artikel |
+| DELETE | `/comment/:id` | Pemilik / Admin | Menghapus komentar |
+
+### Profile (`/api/v1/profile`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| POST | `/profile` | User Login | Membuat atau memperbarui profil user |
+| GET | `/profile` | User Login | Mengambil profil user beserta daftar artikelnya |
+
+### Users (`/api/v1/users`)
+| Method | Endpoint | Akses | Keterangan |
+| :--- | :--- | :--- | :--- |
+| GET | `/users` | Admin | Mengambil seluruh daftar pengguna |
+| GET | `/users/:id` | Admin | Mengambil detail pengguna beserta artikelnya |
+| PATCH | `/users/:id` | Admin | Memperbarui role pengguna (`user` / `admin`) |
+
+---
+
+## Lisensi
+
+Proyek ini dirilis di bawah lisensi [UNLICENSED](LICENSE).
