@@ -8,6 +8,7 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
+  Index,
   type Relation,
 } from 'typeorm';
 import { ArticleStatus } from '../enum/article.enums.js';
@@ -34,6 +35,7 @@ export class Article {
   })
   image: string;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: ArticleStatus,
@@ -43,6 +45,7 @@ export class Article {
 
   @ManyToOne(() => Category, (category) => category.articles)
   category: Relation<Category>;
+  @Index()
   @Column({
     type: "uuid"
   })
@@ -50,6 +53,7 @@ export class Article {
 
   @ManyToOne(() => User, (user) => user.articles)
   user: Relation<User>;
+  @Index()
   @Column({
     type: "uuid"
   })
@@ -66,6 +70,7 @@ export class Article {
   @OneToMany(() => Comment, (comment) => comment.article)
   comments: Relation<Comment[]>;
 
+  @Index()
   @CreateDateColumn()
   readonly createdAt: Date;
 

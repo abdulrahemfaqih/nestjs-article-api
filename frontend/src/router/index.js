@@ -1,12 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
-import ArticleDetailView from '../views/ArticleDetailView.vue';
-import LoginView from '../views/LoginView.vue';
-import RegisterView from '../views/RegisterView.vue';
-import ProfileView from '../views/ProfileView.vue';
-import ArticleEditorView from '../views/ArticleEditorView.vue';
-import AdminDashboardView from '../views/AdminDashboardView.vue';
-import NotFoundView from '../views/NotFoundView.vue';
 import { useAuthStore } from '../stores/auth';
 
 const routes = [
@@ -18,48 +11,48 @@ const routes = [
   {
     path: '/article/:id',
     name: 'article-detail',
-    component: ArticleDetailView,
+    component: () => import('../views/ArticleDetailView.vue'),
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView,
+    component: () => import('../views/LoginView.vue'),
     meta: { guestOnly: true },
   },
   {
     path: '/register',
     name: 'register',
-    component: RegisterView,
+    component: () => import('../views/RegisterView.vue'),
     meta: { guestOnly: true },
   },
   {
     path: '/profile',
     name: 'profile',
-    component: ProfileView,
+    component: () => import('../views/ProfileView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/write',
     name: 'write-article',
-    component: ArticleEditorView,
+    component: () => import('../views/ArticleEditorView.vue'),
     meta: { requiresAdmin: true },
   },
   {
     path: '/article/:id/edit',
     name: 'edit-article',
-    component: ArticleEditorView,
+    component: () => import('../views/ArticleEditorView.vue'),
     meta: { requiresAdmin: true },
   },
   {
     path: '/admin',
     name: 'admin-dashboard',
-    component: AdminDashboardView,
+    component: () => import('../views/AdminDashboardView.vue'),
     meta: { requiresAdmin: true },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: NotFoundView,
+    component: () => import('../views/NotFoundView.vue'),
   },
 ];
 

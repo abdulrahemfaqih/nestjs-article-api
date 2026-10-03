@@ -3,10 +3,11 @@
     <!-- Image Thumbnail (if exists) -->
     <div v-if="article.image" class="aspect-[16/9] w-full overflow-hidden bg-neutral-100 border-b border-neutral-100">
       <img
-        :src="article.image"
+        :src="optimizeImageUrl(article.image, { width: 700, crop: 'fill' })"
         :alt="article.title"
         class="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-300"
         loading="lazy"
+        decoding="async"
       />
     </div>
 
@@ -77,6 +78,8 @@
 </template>
 
 <script setup>
+import { optimizeImageUrl } from '../utils/image';
+
 defineProps({
   article: {
     type: Object,

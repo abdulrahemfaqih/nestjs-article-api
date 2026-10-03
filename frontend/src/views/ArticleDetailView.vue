@@ -116,9 +116,10 @@
       <!-- Featured Image (if available) -->
       <div v-if="article.image" class="overflow-hidden border border-neutral-200 rounded-sm">
         <img
-          :src="article.image"
+          :src="optimizeImageUrl(article.image, { width: 1400, crop: 'limit' })"
           :alt="article.title"
           class="w-full h-auto max-h-[500px] object-cover"
+          decoding="async"
         />
       </div>
 
@@ -161,6 +162,7 @@ import { useArticleStore } from '../stores/article';
 import { useAuthStore } from '../stores/auth';
 import CommentSection from '../components/CommentSection.vue';
 import { ArrowLeft, Edit, Trash2, AlertCircle } from 'lucide-vue-next';
+import { optimizeImageUrl } from '../utils/image';
 
 const route = useRoute();
 const router = useRouter();

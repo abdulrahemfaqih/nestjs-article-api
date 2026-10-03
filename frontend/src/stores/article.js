@@ -90,64 +90,70 @@ export const useArticleStore = defineStore('article', () => {
     }
   }
 
-  // Fetch categories
-  async function fetchCategories() {
+  // Fetch categories (with memory caching)
+  async function fetchCategories(force = false) {
+    if (!force && categories.value.length > 0) {
+      return categories.value;
+    }
     try {
       const res = await apiClient.get('/category');
       categories.value = Array.isArray(res.data) ? res.data : [];
       return categories.value;
     } catch (err) {
-      categories.value = [];
-      return [];
+      if (!categories.value.length) categories.value = [];
+      return categories.value;
     }
   }
 
   // Category CRUD
   async function createCategory(name) {
     const res = await apiClient.post('/category', { name });
-    await fetchCategories();
+    await fetchCategories(true);
     return res.data;
   }
 
   async function updateCategory(id, name) {
     const res = await apiClient.patch(`/category/${id}`, { name });
-    await fetchCategories();
+    await fetchCategories(true);
     return res.data;
   }
 
   async function deleteCategory(id) {
     await apiClient.delete(`/category/${id}`);
-    await fetchCategories();
+    await fetchCategories(true);
   }
 
-  // Fetch tags
-  async function fetchTags() {
+  // Fetch tags (with memory caching)
+  async function fetchTags(force = false) {
+    if (!force && tags.value.length > 0) {
+      return tags.value;
+    }
     try {
       const res = await apiClient.get('/tag');
       tags.value = Array.isArray(res.data) ? res.data : [];
       return tags.value;
     } catch (err) {
-      tags.value = [];
-      return [];
+      if (!tags.value.length) tags.value = [];
+      return tags.value;
     }
   }
 
   // Tag CRUD
   async function createTag(name) {
     const res = await apiClient.post('/tag', { name });
-    await fetchTags();
+    await fetchTags(true);
     return res.data;
   }
 
   async function updateTag(id, name) {
     const res = await apiClient.patch(`/tag/${id}`, { name });
-    await fetchTags();
+    await fetchTags(true);
     return res.data;
   }
 
   async function deleteTag(id) {
     await apiClient.delete(`/tag/${id}`);
-    await fetchTags();
+    await fetchTags(true);
   }
 
   // Create article (multipart/form-data)

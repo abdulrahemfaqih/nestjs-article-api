@@ -248,10 +248,11 @@ function resetAllFilters() {
 }
 
 onMounted(async () => {
+  // Load categories, tags, and initial articles simultaneously in parallel
   await Promise.all([
     articleStore.fetchCategories(),
     articleStore.fetchTags(),
+    loadArticles(),
   ]);
-  await loadArticles();
 });
 </script>
