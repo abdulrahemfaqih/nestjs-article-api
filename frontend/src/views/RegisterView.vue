@@ -78,20 +78,6 @@
           </p>
         </div>
 
-        <div>
-          <label for="role" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
-            Peran Akun (Role)
-          </label>
-          <select
-            id="role"
-            v-model="form.role"
-            class="w-full text-sm px-3 py-2 bg-white border border-neutral-300 rounded focus:outline-none focus:border-black transition-colors cursor-pointer"
-          >
-            <option value="user">User (Pembaca & Komentar)</option>
-            <option value="admin">Admin (Publikasi Artikel & Manajemen)</option>
-          </select>
-        </div>
-
         <button
           type="submit"
           :disabled="isLoading"
@@ -125,7 +111,6 @@ const form = reactive({
   name: '',
   email: '',
   password: '',
-  role: 'user',
 });
 
 const isLoading = ref(false);
