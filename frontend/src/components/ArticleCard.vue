@@ -1,15 +1,19 @@
 <template>
   <article class="group bg-white border border-neutral-200 rounded-sm hover:border-black transition-colors duration-200 flex flex-col overflow-hidden">
-    <!-- Image Thumbnail (if exists) -->
-    <div v-if="article.image" class="aspect-[16/9] w-full overflow-hidden bg-neutral-100 border-b border-neutral-100">
+    <!-- Image Thumbnail (Clickable) -->
+    <router-link
+      v-if="article.image"
+      :to="`/article/${article.id}`"
+      class="block aspect-[16/9] w-full overflow-hidden bg-neutral-100 border-b border-neutral-100 cursor-pointer"
+    >
       <img
         :src="optimizeImageUrl(article.image, { width: 700, crop: 'fill' })"
         :alt="article.title"
-        class="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-300"
+        class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
         loading="lazy"
         decoding="async"
       />
-    </div>
+    </router-link>
 
     <!-- Content Body -->
     <div class="p-6 flex-1 flex flex-col justify-between">
@@ -40,15 +44,24 @@
 
         <!-- Title -->
         <h3 class="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-amber-800 transition-colors mb-2.5">
-          <router-link :to="`/article/${article.id}`">
+          <router-link :to="`/article/${article.id}`" class="hover:underline">
             {{ article.title }}
           </router-link>
         </h3>
 
         <!-- Excerpt -->
         <p class="text-neutral-600 text-sm leading-relaxed line-clamp-3 mb-4">
-          {{ article.content }}
+          {{ cleanExcerpt(article.content) }}
         </p>
+
+        <!-- Read More Button -->
+        <router-link
+          :to="`/article/${article.id}`"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-900 group-hover:text-amber-800 transition-colors mb-2"
+        >
+          <span>Baca Selengkapnya</span>
+          <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+        </router-link>
       </div>
 
       <!-- Bottom Meta -->
@@ -78,6 +91,7 @@
 </template>
 
 <script setup>
+import { ArrowRight } from 'lucide-vue-next';
 import { optimizeImageUrl } from '../utils/image';
 
 defineProps({
@@ -86,6 +100,15 @@ defineProps({
     required: true,
   },
 });
+
+function cleanExcerpt(content) {
+  if (!content) return '';
+  return content
+    .replace(/^#+\s+/gm, '')
+    .replace(/[*_~`]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .trim();
+}
 
 function formatDate(dateStr) {
   if (!dateStr) return '';

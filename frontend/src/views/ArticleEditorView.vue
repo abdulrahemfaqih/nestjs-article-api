@@ -213,19 +213,59 @@
         </div>
       </div>
 
-      <!-- Content Textarea -->
+      <!-- Content Textarea with Markdown Preview Tab -->
       <div>
-        <label for="content" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
-          Isi Konten Artikel *
-        </label>
-        <textarea
-          id="content"
-          v-model="form.content"
-          required
-          rows="14"
-          placeholder="Tuliskan isi artikel Anda di sini..."
-          class="w-full text-sm p-4 bg-white border border-neutral-300 rounded focus:outline-none focus:border-black resize-y font-sans leading-relaxed transition-colors"
-        ></textarea>
+        <div class="flex items-center justify-between mb-2">
+          <label for="content" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+            Isi Konten Artikel (Format Markdown) *
+          </label>
+          <div class="flex items-center bg-neutral-100 p-0.5 rounded text-xs">
+            <button
+              type="button"
+              @click="activeContentTab = 'write'"
+              class="px-2.5 py-1 rounded transition-colors cursor-pointer"
+              :class="activeContentTab === 'write' ? 'bg-white text-black font-semibold shadow-xs' : 'text-neutral-500 hover:text-black'"
+            >
+              Tulis (MD)
+            </button>
+            <button
+              type="button"
+              @click="activeContentTab = 'preview'"
+              class="px-2.5 py-1 rounded transition-colors cursor-pointer"
+              :class="activeContentTab === 'preview' ? 'bg-white text-black font-semibold shadow-xs' : 'text-neutral-500 hover:text-black'"
+            >
+              Pratinjau Hasil
+            </button>
+          </div>
+        </div>
+
+        <div v-show="activeContentTab === 'write'">
+          <textarea
+            id="content"
+            v-model="form.content"
+            required
+            rows="14"
+            placeholder="Tulis artikel dengan sintaks Markdown...&#10;&#10;# Judul Utama&#10;Tulis paragraf dengan teks **tebal**, *miring*, atau [tautan](https://...).&#10;&#10;## Sub Judul&#10;- Poin daftar 1&#10;- Poin daftar 2&#10;&#10;```javascript&#10;console.log('Kode cuplikan');&#10;```"
+            class="w-full text-sm p-4 bg-white border border-neutral-300 rounded focus:outline-none focus:border-black resize-y font-mono leading-relaxed transition-colors"
+          ></textarea>
+          <p class="text-[11px] text-neutral-400 mt-1">
+            Tips: Gunakan # untuk judul, **teks** untuk tebal, `kode` untuk kode, dan ``` untuk blok program.
+          </p>
+        </div>
+
+        <div
+          v-show="activeContentTab === 'preview'"
+          class="min-h-[300px] p-4 bg-white border border-neutral-300 rounded overflow-y-auto"
+        >
+          <div
+            v-if="form.content.trim()"
+            class="prose prose-neutral max-w-none prose-headings:font-bold prose-pre:bg-neutral-950 prose-pre:text-white"
+            v-html="renderMarkdown(form.content)"
+          ></div>
+          <div v-else class="text-xs text-neutral-400 italic py-12 text-center">
+            Belum ada konten untuk dipratinjau. Ketik artikel Anda pada tab 'Tulis (MD)'.
+          </div>
+        </div>
       </div>
     </form>
   </div>
@@ -236,6 +276,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useArticleStore } from '../stores/article';
 import { ArrowLeft, AlertTriangle, X } from 'lucide-vue-next';
+import { renderMarkdown } from '../utils/markdown';
 
 const route = useRoute();
 const router = useRouter();
@@ -244,6 +285,7 @@ const articleStore = useArticleStore();
 const isEditing = computed(() => !!route.params.id);
 const isSubmitting = ref(false);
 const errorMessage = ref('');
+const activeContentTab = ref('write');
 
 const selectedFile = ref(null);
 const imagePreview = ref('');

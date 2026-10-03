@@ -12,7 +12,7 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="articleStore.isDetailLoading" class="space-y-6">
+    <div v-if="isLoading" class="space-y-6 animate-pulse">
       <div class="h-6 w-32 bg-neutral-200 rounded"></div>
       <div class="h-12 w-full bg-neutral-200 rounded"></div>
       <div class="h-64 w-full bg-neutral-100 rounded"></div>
@@ -25,7 +25,7 @@
 
     <!-- Error State -->
     <div
-      v-else-if="articleStore.error || !article"
+      v-else-if="errorMessage || !article"
       class="py-16 text-center border border-neutral-300 rounded bg-white"
     >
       <AlertCircle class="w-8 h-8 text-neutral-400 mx-auto mb-2" />
@@ -33,7 +33,7 @@
         Artikel tidak ditemukan
       </h2>
       <p class="text-xs text-neutral-500 mb-4">
-        {{ articleStore.error || 'Artikel yang Anda cari mungkin telah dihapus atau URL tidak valid.' }}
+        {{ errorMessage || 'Artikel yang Anda cari mungkin telah dihapus atau URL tidak valid.' }}
       </p>
       <router-link
         to="/"
@@ -123,11 +123,12 @@
         />
       </div>
 
-      <!-- Article Body Content -->
+      <!-- Article Body Content (Markdown Formatted) -->
       <div class="py-4">
-        <div class="text-neutral-800 text-base sm:text-lg leading-relaxed whitespace-pre-line space-y-4 font-normal">
-          {{ article.content }}
-        </div>
+        <div
+          class="prose prose-neutral max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-neutral-900 prose-a:underline hover:prose-a:text-amber-800 prose-pre:bg-neutral-950 prose-pre:text-neutral-100 prose-pre:border prose-pre:border-neutral-800 prose-code:font-mono prose-img:rounded-md leading-relaxed"
+          v-html="renderedContent"
+        ></div>
       </div>
 
       <!-- Tags Section -->
@@ -156,20 +157,28 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useArticleStore } from '../stores/article';
 import { useAuthStore } from '../stores/auth';
 import CommentSection from '../components/CommentSection.vue';
 import { ArrowLeft, Edit, Trash2, AlertCircle } from 'lucide-vue-next';
 import { optimizeImageUrl } from '../utils/image';
+import { renderMarkdown } from '../utils/markdown';
 
 const route = useRoute();
 const router = useRouter();
 const articleStore = useArticleStore();
 const authStore = useAuthStore();
 
+const isLoading = ref(true);
+const errorMessage = ref('');
+
 const article = computed(() => articleStore.currentArticle);
+
+const renderedContent = computed(() => {
+  return renderMarkdown(article.value?.content || '');
+});
 
 const authorInitial = computed(() => {
   return article.value?.user?.name ? article.value.user.name.charAt(0).toUpperCase() : 'U';
@@ -183,6 +192,19 @@ function formatDate(dateStr) {
     month: 'long',
     year: 'numeric',
   });
+}
+
+async function loadArticle(id) {
+  if (!id) return;
+  try {
+    isLoading.value = true;
+    errorMessage.value = '';
+    await articleStore.fetchArticleById(id);
+  } catch (err) {
+    errorMessage.value = err.message || 'Gagal memuat artikel.';
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 async function handleAddComment(content) {
@@ -206,10 +228,16 @@ async function handleDeleteArticle() {
   }
 }
 
-onMounted(async () => {
-  const articleId = route.params.id;
-  if (articleId) {
-    await articleStore.fetchArticleById(articleId);
-  }
+onMounted(() => {
+  loadArticle(route.params.id);
 });
+
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      loadArticle(newId);
+    }
+  }
+);
 </script>
