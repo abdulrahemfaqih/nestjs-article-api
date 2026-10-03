@@ -1,15 +1,26 @@
-import { config } from 'dotenv'
-import { DataSource } from 'typeorm'
+import { config } from 'dotenv';
+import { DataSource } from 'typeorm';
 
-config()
+config();
+
+const isSsl =
+  process.env.DB_SSL === 'true' || Boolean(process.env.DATABASE_URL);
+
+const databaseUrl = process.env.DATABASE_URL;
+
 export default new DataSource({
-    type: "postgres",
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT ?? "5432"),
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    synchronize: false,
-    entities: ["dist/**/entities/*.entity{.ts,.js}"],
-    migrations: ["dist/migrations/*{.ts,.js}"],
-})
+  type: 'postgres',
+  ...(databaseUrl
+    ? { url: databaseUrl }
+    : {
+        host: process.env.DB_HOST,
+        port: parseInt(process.env.DB_PORT ?? '5432'),
+        username: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+      }),
+  synchronize: false,
+  entities: ['dist/**/entities/*.entity{.ts,.js}'],
+  migrations: ['dist/migrations/*{.ts,.js}'],
+  ssl: isSsl ? { rejectUnauthorized: false } : false,
+});
